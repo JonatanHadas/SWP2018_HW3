@@ -13,8 +13,8 @@ int b_w  : width of block
 int b_h  : height of block
 note: (see same parameter in SudokuGame)
 
-int* solution_a  : stores solution for game, contains digits from 1 to 9.
-int** solution   : same as fixed is for fixed_a and board is for board_a
+int* solution_a  : stores solution for game, contains digits from 0 to 9, row by row.
+int** solution   : stores array of pointers to row beginings
 
 note: an unfinished solution might contain 0's representing cells with yet unknown solution
 */
@@ -41,8 +41,7 @@ int b_w  : width of block
 int b_h  : height of block
 note: board is b_w blocks high and b_h block wide (all in all b_w*b_h cells wide and high)
 
-int* board_a : array containing all cells, row after row
-int** board  : array of pointers to row beginings in board_a, simulates 2d array on board_a
+Solution* board  : a partial solution representing current board situation
 note: board will contain digits from 0 to 9, 0 represents an empty cell
 
 int* fixed_a  : array of booleans 1-for fixed cell, 0-for changable.
@@ -52,8 +51,7 @@ Solution* sol  : solution for board
 */
 typedef struct sudoku_game_t{
 	int b_w,b_h;
-	int * board_a;
-	int ** board;
+	Solution* board;
 	int * fixed_a;
 	int ** fixed;
 	Solution* sol;
