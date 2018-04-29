@@ -6,6 +6,34 @@ a game includes a board, and a solution
 */
 
 /*
+This structure stores a solution for a sudoku board
+
+contains:
+int b_w  : width of block
+int b_h  : height of block
+note: (see same parameter in SudokuGame)
+
+int* solution_a  : stores solution for game, contains digits from 1 to 9.
+int** solution   : same as fixed is for fixed_a and board is for board_a
+
+note: an unfinished solution might contain 0's representing cells with yet unknown solution
+*/
+typedef struct sudoku_solution_t{
+	int b_w,b_h;
+	int * solution_a;
+	int ** solution;
+} Solution;
+
+/*
+Allocates empty solution board with given block size
+*/
+Solution* create_game(int block_w, int block_h);
+/*
+Frees memory of given solution structure
+*/
+void destroy_game(Solution* game);
+
+/*
 This structure contains a sudoku board of arbitrary size, and a solution
 
 contains:
@@ -20,8 +48,7 @@ note: board will contain digits from 0 to 9, 0 represents an empty cell
 int* fixed_a  : array of booleans 1-for fixed cell, 0-for changable.
 int** fixed   : array of pointers to row beginings in fixed_a, simulates 2d array on fixed_a
 
-int* solution_a  : stores solution for game, contains digits from 1 to 9.
-int** solution   : same as fixed is for fixed_a and board is for board_a
+Solution* sol  : solution for board
 */
 typedef struct sudoku_game_t{
 	int b_w,b_h;
@@ -29,8 +56,8 @@ typedef struct sudoku_game_t{
 	int ** board;
 	int * fixed_a;
 	int ** fixed;
-	int * solution_a;
-	int ** solution;
+	Solution* sol;
+	
 } SudokuGame;
 
 /*
@@ -57,5 +84,12 @@ int check_value(SudokuGame* game, int x, int y, int z);
 returns wether game board is full
 */
 int game_is_full(SudokuGame* game);
+
+/*
+Allocates solution for given game, and copies content of board into solution
+
+(this is an unfinished solution to be completed by a solver)
+*/
+Solution* generate_solution_from_board(SudokuGame* game);
 
 #endif
