@@ -8,13 +8,13 @@ OBJS = main.o parser.o solver.o game.o
 
 $(EXEC): $(OBJS)
 	$(CC) $(OBJS) -o $@
-main.o: main.c parser.h solver.h game.h
+main.o: main.c parser.h solver.h game.h main_aux.h
 	$(CC) $(COMP_FALG) -c $*.c
-game.o: main.c parser.h solver.h game.h
+game.o: main.c parser.h solver.h game.h main_aux.h
 	$(CC) $(COMP_FALG) -c $*.c
-parser.o: main.c parser.h solver.h game.h
+parser.o: main.c parser.h solver.h game.h main_aux.h
 	$(CC) $(COMP_FALG) -c $*.c
-solver.o: main.c parser.h solver.h game.h
+solver.o: main.c parser.h solver.h game.h main_aux.h
 	$(CC) $(COMP_FALG) -c $*.c
 clean:
 	rm -f $(EXEC) *.o

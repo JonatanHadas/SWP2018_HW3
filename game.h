@@ -27,11 +27,11 @@ typedef struct sudoku_solution_t{
 /*
 Allocates empty solution board with given block size
 */
-Solution* create_game(int block_w, int block_h);
+Solution* create_solution(int block_w, int block_h);
 /*
 Frees memory of given solution structure
 */
-void destroy_game(Solution* game);
+void destroy_solution(Solution* game);
 
 /*
 This structure contains a sudoku board of arbitrary size, and a solution
