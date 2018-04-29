@@ -1,6 +1,6 @@
 #include "solver.h"
 #include "main_aux.h"
-#include "stdlib.h"
+#include <stdlib.h>
 
 Solution* solve_det(SudokuGame* Game){
 	return NULL; /*TODO*/

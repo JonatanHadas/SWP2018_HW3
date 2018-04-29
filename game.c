@@ -1,6 +1,7 @@
 #include "game.h"
 #include "main_aux.h"
-#include "stdlib.h"
+#include <stdlib.h>
+#include <stdio.h>
 
 Solution* create_solution(int block_w, int block_h){
 	Solution* new_solution;
@@ -50,8 +51,44 @@ void destroy_game(SudokuGame* game){
 	/*TODO*/
 }
 
+#define FIXED_CHAR ('.')
+#define NON_FIXED_CHAR (' ')
+
 void print_game(SudokuGame* game){
-	/*TODO*/
+	int blk_row, blk_col; /* index of rows and columns of blocks */
+	int inr_row, inr_col; /* row and column within block (inner row and column)*/
+	int row, col; /* actual row and column */
+	char is_fixed_char; /* character will change according to current cell */
+	
+	for(row = blk_row = 0; blk_row <= game->b_w; blk_row++){ /* loop over b_w rows of blocks and an extra line at the end*/
+		/* print horizontal line between blocks */
+		for(blk_col = 0; blk_col < game->b_h; blk_col++){
+			for(inr_col = 0; inr_col < game->b_w; inr_col++){
+				printf("---"); /* cell is 3 characters wide */
+			}
+			printf("--"); /* 2 characters more per block */
+		}
+		printf("-\n"); /* one last character and line break */
+		
+		
+		if(blk_row == game->b_w) continue; /* an if we are one row beyond end, only print hotizontal line */
+		
+		for(inr_row = 0; inr_row < game->b_h; row++, inr_row++){ /* loop over b_h rows within a block */
+			for(blk_col = col = 0; blk_col < game->b_h; blk_col++){ /* loop over b_h columns of blocks */
+				printf("| "); /* print vertical line between blocks */
+				for(inr_col = 0; inr_col < game->b_w; inr_col++, col++){ /* loop over b_w columns within a block */
+					is_fixed_char = (game->fixed[row][col])? FIXED_CHAR : NON_FIXED_CHAR;
+					if(game->board->solution[row][col] == 0){
+						printf("%c  ", is_fixed_char); /* if 0 is saved cell is empty */
+					}
+					else{
+						printf("%c%d ", is_fixed_char, game->board->solution[row][col]); /* print number in cell */
+					}
+				}
+			}
+			printf("|\n"); /* print last vertical line and break line */
+		}
+	}
 }
 
 int check_value(SudokuGame* game, int x, int y, int z){
