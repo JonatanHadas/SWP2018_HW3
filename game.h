@@ -54,8 +54,8 @@ Solution* sol  : solution for board
 typedef struct sudoku_game_t{
 	int b_w,b_h;
 	Solution* board;
-	int * fixed_a;
-	int ** fixed;
+	int* fixed_a;
+	int** fixed;
 	Solution* sol;
 	
 } SudokuGame;

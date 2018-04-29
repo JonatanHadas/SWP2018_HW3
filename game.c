@@ -96,7 +96,13 @@ int check_value(SudokuGame* game, int x, int y, int z){
 }
 
 int game_is_full(SudokuGame* game){
-	return 0; /*TODO*/
+	int row, col;
+	for(int row = 0; row < game->b_w * game->b_h; row++){
+		for(int col = 0; col < game->b_w * game->b_h; col++){
+			if(game->board->solution[row][col] == 0) return FALSE; /* empty cell detected */
+		}
+	}
+	return TRUE; /* no empty cells detected */
 }
 
 Solution* generate_solution_from_board(SudokuGame* game){
