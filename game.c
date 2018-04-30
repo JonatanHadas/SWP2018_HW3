@@ -43,16 +43,64 @@ void destroy_solution(Solution* solution){
 	free(solution); /* free solution itself */
 }
 
-Solution* copy_solution(Solution* game){
-	return NULL; /*TODO*/
+Solution* copy_solution(Solution* solution){
+	int i, size;
+	Solution* new_solution = create_solution(solution->b_w, solution->b_h); /* allocate solution of same size */
+	size = solution->b_h * solution->b_w; /* height and width of board */
+	for(i = 0; i<size*size; i++){
+		new_solution->solution_a[i] = solution->solution_a[i];/* copy cell */
+	}
+	return new_solution;
 }
 
 SudokuGame* create_game(int block_w, int block_h){
-	return NULL; /*TODO*/
+	SudokuGame* game = malloc(sizeof(SudokuGame)); /* allocate memory */
+	int* row_start_ptr;
+	int ind;
+	
+	if(game == NULL){
+		return NULL;
+	}
+	
+	game->b_w = block_w; /* set game size */
+	game->b_h = block_h;
+	game->solution = NULL;
+	
+	game->board = create_solution(block_w, block_h);
+	if(game->board == NULL){
+		free(game); /* on failure free all resources */
+		return NULL;
+	}
+	
+	game->fixed_a = calloc(block_w*block_w*block_h*block_h, sizeof(int)); /* allocate (b_h*b_w)x(b_h*b_w) non fixed cells (0) */
+	if(game->fixed_a == NULL){
+		free(game->board);
+		free(game);
+		return NULL;
+	}
+	
+	game->fixed = calloc(block_w*block_h, sizeof(int*)); /* allocate (b_h*b_w) row pointers */
+	if(game->fixed == NULL){
+		free(game->fixed_a);
+		free(game->board);
+		free(game);
+		return NULL;
+	}
+		
+	/* loop over all rows and set fixed[i] to fixed_a + <row_size>*i */
+	for(ind=0,row_start_ptr = game->fixed_a; ind<block_h*block_w ; ind++, row_start_ptr += block_h*block_w){
+		game->fixed[ind] = row_start_ptr;
+	}
+	
+	return game;
 }
 
 void destroy_game(SudokuGame* game){
-	/*TODO*/
+	free(game->fixed_a);
+	free(game->fixed);
+	destroy_solution(game->board);
+	if(game->solution) destroy_solution(game->solution);
+	free(game);
 }
 
 #define FIXED_CHAR ('.')

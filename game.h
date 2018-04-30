@@ -25,7 +25,7 @@ typedef struct sudoku_solution_t{
 } Solution;
 
 /*
-Allocates empty solution board with given block size
+Allocates empty (all 0) solution board with given block size
 
 returns NULL on failure
 */
@@ -38,7 +38,7 @@ void destroy_solution(Solution* solution);
 /*
 creates a copy of a solution in the memory
 */
-Solution* copy_solution(Solution* game);
+Solution* copy_solution(Solution* solution);
 
  /*
 This structure contains a sudoku board of arbitrary size, and a solution
@@ -66,7 +66,9 @@ typedef struct sudoku_game_t{
 } SudokuGame;
 
 /*
-Allocates empty game board with given block size
+Allocates empty (all 0) game board with given block size
+
+solution to game will be set to NULL pointer
 
 returns NULL on failure
 */
