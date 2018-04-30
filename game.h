@@ -93,4 +93,9 @@ returns wether game board is full
 */
 int game_is_full(SudokuGame* game);
 
+/*
+frees old solution if any, and replaces with given solution pointer (could be NULL)
+*/
+void replace_solution(SudokuGame* game, Solution* solution);
+
 #endif

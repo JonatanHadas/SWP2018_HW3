@@ -33,3 +33,7 @@ int check_value(SudokuGame* game, int x, int y, int z){
 int game_is_full(SudokuGame* game){
 	return 0; /*TODO*/
 }
+
+void replace_solution(SudokuGame* game, Solution* solution){
+	/*TODO*/
+}
