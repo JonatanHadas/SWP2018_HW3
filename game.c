@@ -29,7 +29,7 @@ Solution* create_solution(int block_w, int block_h){
 		return NULL;
 	}
 	
-	/* loop over all rows and set solution[i] to solution_a + <row_size>*i */
+	/* loop over all columns and set solution[i] to solution_a + <row_size>*i */
 	for(ind=0,row_start_ptr = new_solution->solution_a; ind<block_h*block_w ; ind++, row_start_ptr += block_h*block_w){
 		new_solution->solution[ind] = row_start_ptr;
 	}
@@ -64,7 +64,7 @@ SudokuGame* create_game(int block_w, int block_h){
 	
 	game->b_w = block_w; /* set game size */
 	game->b_h = block_h;
-	game->solution = NULL;
+	game->sol = NULL;
 	
 	game->board = create_solution(block_w, block_h);
 	if(game->board == NULL){
@@ -87,7 +87,7 @@ SudokuGame* create_game(int block_w, int block_h){
 		return NULL;
 	}
 		
-	/* loop over all rows and set fixed[i] to fixed_a + <row_size>*i */
+	/* loop over all columns and set fixed[i] to fixed_a + <row_size>*i */
 	for(ind=0,row_start_ptr = game->fixed_a; ind<block_h*block_w ; ind++, row_start_ptr += block_h*block_w){
 		game->fixed[ind] = row_start_ptr;
 	}
@@ -129,12 +129,12 @@ void print_game(SudokuGame* game){
 			for(blk_col = col = 0; blk_col < game->b_h; blk_col++){ /* loop over b_h columns of blocks */
 				printf("| "); /* print vertical line between blocks */
 				for(inr_col = 0; inr_col < game->b_w; inr_col++, col++){ /* loop over b_w columns within a block */
-					is_fixed_char = (game->fixed[row][col])? FIXED_CHAR : NON_FIXED_CHAR;
-					if(game->board->solution[row][col] == 0){
+					is_fixed_char = (game->fixed[col][row])? FIXED_CHAR : NON_FIXED_CHAR;
+					if(game->board->solution[col][row] == 0){
 						printf("%c  ", is_fixed_char); /* if 0 is saved cell is empty */
 					}
 					else{
-						printf("%c%d ", is_fixed_char, game->board->solution[row][col]); /* print number in cell */
+						printf("%c%d ", is_fixed_char, game->board->solution[col][row]); /* print number in cell */
 					}
 				}
 			}
@@ -154,26 +154,25 @@ int check_value(SudokuGame* game, int x, int y, int z){
 	col = x;
 	for(row = 0; row<size; row++){
 		if(row == y) continue; /* ignore checked cell (x,y)*/
-		if(game->board->solution[row][col] == z) return FALSE;  /* found identical cell in column */
+		if(game->board->solution[col][row] == z) return FALSE;  /* found identical cell in column */
 	}
 
 	/* check row */
 	row = y;
 	for(col = 0; col<size; col++){
 		if(col == x) continue; /* ignore checked cell (x,y)*/
-		if(game->board->solution[row][col] == z) return FALSE;  /* found identical cell in column */
+		if(game->board->solution[col][row] == z) return FALSE;  /* found identical cell in column */
 	}
 	
-	blk_row = row / game->b_h;
-	blk_col = col / game->b_w;
+	blk_row = y / game->b_h;
+	blk_col = x / game->b_w;
 	blk_start_row = blk_row * game->b_h;
 	blk_start_col = blk_col * game->b_w;
-	
 	/* check block */
 	for(inr_row = 0, row = blk_start_row; inr_row < game->b_h; inr_row++, row++){
 		for(inr_col = 0, col = blk_start_col; inr_col < game->b_w; inr_col++, col++){
 			if(row == y && col == x) continue; /* ignore checked cell (x,y)*/
-			if(game->board->solution[row][col] == z) return FALSE;  /* found identical cell in column */
+			if(game->board->solution[col][row] == z) return FALSE;  /* found identical cell in column */
 		}
 	}
 	
@@ -185,13 +184,13 @@ int game_is_full(SudokuGame* game){
 	int row, col;
 	for(int row = 0; row < game->b_w * game->b_h; row++){
 		for(int col = 0; col < game->b_w * game->b_h; col++){
-			if(game->board->solution[row][col] == 0) return FALSE; /* empty cell detected */
+			if(game->board->solution[col][row] == 0) return FALSE; /* empty cell detected */
 		}
 	}
 	return TRUE; /* no empty cells detected */
 }
 
 void replace_solution(SudokuGame* game, Solution* solution){
-	if(game->solution) destroy_solution(game->solution); /* if not null then destroy old solution */
-	game->solution = solution;
+	if(game->sol) destroy_solution(game->sol); /* if not null then destroy old solution */
+	game->sol = solution;
 }

@@ -13,8 +13,8 @@ int b_w  : width of block
 int b_h  : height of block
 note: (see same parameter in SudokuGame)
 
-int* solution_a  : stores solution for game, contains digits from 0 to 9, row by row.
-int** solution   : stores array of pointers to row beginings
+int* solution_a  : stores solution for game, contains digits from 0 to 9, column by column.
+int** solution   : stores array of pointers to column beginings
 
 note: an unfinished solution might contain 0's representing cells with yet unknown solution
 */
