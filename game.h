@@ -86,6 +86,7 @@ void print_game(SudokuGame* game);
 /*
 returns wether value z can be placed in position x,y int given game
 (checks for value z in row column and block)
+z must be from 1 to 9 (no 0)
 */
 int check_value(SudokuGame* game, int x, int y, int z);
 
