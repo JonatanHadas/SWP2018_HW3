@@ -156,3 +156,7 @@ int game_is_full(SudokuGame* game){
 	}
 	return TRUE; /* no empty cells detected */
 }
+
+void replace_solution(SudokuGame* game, Solution* solution){
+	/*TODO*/
+}
