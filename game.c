@@ -10,6 +10,10 @@ void destroy_solution(Solution* game){
 	/*TODO*/
 }
 
+Solution* copy_solution(Solution* game){
+	return NULL; /*TODO*/
+}
+
 SudokuGame* create_game(int block_w, int block_h){
 	return NULL; /*TODO*/
 }
@@ -28,8 +32,4 @@ int check_value(SudokuGame* game, int x, int y, int z){
 
 int game_is_full(SudokuGame* game){
 	return 0; /*TODO*/
-}
-
-Solution* generate_solution_from_board(SudokuGame* game){
-	return NULL; /*TODO*/
 }

@@ -26,12 +26,20 @@ typedef struct sudoku_solution_t{
 
 /*
 Allocates empty solution board with given block size
+
+returns NULL on failure
 */
 Solution* create_solution(int block_w, int block_h);
 /*
 Frees memory of given solution structure
 */
-void destroy_solution(Solution* game);
+void destroy_solution(Solution* solution);
+
+/*
+creates a copy of a solution in the memory
+*/
+Solution* copy_solution(Solution* game);
+
 
 /*
 This structure contains a sudoku board of arbitrary size, and a solution
@@ -52,14 +60,16 @@ Solution* sol  : solution for board
 typedef struct sudoku_game_t{
 	int b_w,b_h;
 	Solution* board;
-	int * fixed_a;
-	int ** fixed;
+	int* fixed_a;
+	int** fixed;
 	Solution* sol;
 	
 } SudokuGame;
 
 /*
 Allocates empty game board with given block size
+
+returns NULL on failure
 */
 SudokuGame* create_game(int block_w, int block_h);
 /*
@@ -82,12 +92,5 @@ int check_value(SudokuGame* game, int x, int y, int z);
 returns wether game board is full
 */
 int game_is_full(SudokuGame* game);
-
-/*
-Allocates solution for given game, and copies content of board into solution
-
-(this is an unfinished solution to be completed by a solver)
-*/
-Solution* generate_solution_from_board(SudokuGame* game);
 
 #endif
