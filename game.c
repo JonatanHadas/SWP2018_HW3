@@ -43,6 +43,10 @@ void destroy_solution(Solution* solution){
 	free(solution); /* free solution itself */
 }
 
+Solution* copy_solution(Solution* game){
+	return NULL; /*TODO*/
+}
+
 SudokuGame* create_game(int block_w, int block_h){
 	return NULL; /*TODO*/
 }
@@ -103,8 +107,4 @@ int game_is_full(SudokuGame* game){
 		}
 	}
 	return TRUE; /* no empty cells detected */
-}
-
-Solution* generate_solution_from_board(SudokuGame* game){
-	return NULL; /*TODO*/
 }

@@ -36,6 +36,11 @@ Frees memory of given solution structure
 void destroy_solution(Solution* solution);
 
 /*
+creates a copy of a solution in the memory
+*/
+Solution* copy_solution(Solution* game);
+
+ /*
 This structure contains a sudoku board of arbitrary size, and a solution
 
 contains:
@@ -86,12 +91,5 @@ int check_value(SudokuGame* game, int x, int y, int z);
 returns wether game board is full
 */
 int game_is_full(SudokuGame* game);
-
-/*
-Allocates solution for given game, and copies content of board into solution
-
-(this is an unfinished solution to be completed by a solver)
-*/
-Solution* generate_solution_from_board(SudokuGame* game);
 
 #endif
