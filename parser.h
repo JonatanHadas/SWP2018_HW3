@@ -1,19 +1,13 @@
-#ifndef _PARSER_H
-#define _PARSER_H
-/*
-This module parses input into commands with parameters, and errors.
-*/
 
 
-typedef enum command_t{
-	CMD_SET;
-	CMD_HINT;
-	CMD_VALIDATE;
-	CMD_RESTART;
-	CMD_EXIT;
-	CMD_INVALID; /* used when an invalid command is entered */
-} Command;
+#ifndef PARSER_H_
+#define PARSER_H_
 
-Command get_command();
+int* get_command(int *result, int solved);
 
-#endif
+int get_number_from_string(char *input_string);
+
+int read_num_fixed_cells(int max_cells);
+
+#endif /* PARSER_H_ */
+
