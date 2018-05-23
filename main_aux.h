@@ -1,13 +1,18 @@
-#ifndef _AUX_H
-#define _AUX_H
 /*
-Auxiliary module, general constants and functions
-*/
+ * mainAux.h
+ *
+ *  Created on: May 22, 2018
+ *      Author: User1
+ */
 
-/*
-boolean constants
-*/
-#define TRUE 1
-#define FALSE 0
+#ifndef MAINAUX_H_
+#define MAINAUX_H_
 
-#endif
+#include <time.h>
+#include "game.h"
+
+int generate_puzzle(Board *game_board, Board *solution_board,int fixed_cells);
+
+int gameloop(Board *game_board, Board *solution_board, int fixed_cells);
+
+#endif /* MAINAUX_H_ */
