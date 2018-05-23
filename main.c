@@ -25,10 +25,8 @@ int main(int argc, char *argv[]) {
 	if(game_board!=NULL || solution_board!=NULL){
 		while(1){
 			fixed_cells=read_num_fixed_cells(SIZE*SIZE);
-			printf("fixed cells %d \n", fixed_cells);
 			fflush(stdout);
 			if(fixed_cells==-1) break;
-			printf("check %d \n", check);
 			fflush(stdout);
 			check=generate_puzzle(game_board, solution_board, fixed_cells);
 			if(check==-1) break;
@@ -37,8 +35,6 @@ int main(int argc, char *argv[]) {
 			if(check==5) break; /* exit */
 		}
 	}
-	printf("check %d \n", check);
-	fflush(stdout);
 	printf("Exiting...\n");
 	fflush(stdout);
 	destroy_sudoku(game_board);
