@@ -39,6 +39,7 @@ int brute_solver(Board* game){
 int brute_solver_rec(Board* game, int i, int j){
 	int value=1;
 	if(game->table[i][j]<0){
+		if((i==game->size-1)&&(j==game->size-1)) return 1; /* success! */
 		return(brute_solver_rec(game,i+((j+1)/(game->size)),(j+1)%(game->size)));
 	}
 	else{
