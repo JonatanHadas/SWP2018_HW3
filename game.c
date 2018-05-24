@@ -1,151 +1,225 @@
 
 
-#include <string.h>
+#include "game.h"
+#include "solver.h"
 #include <stdio.h>
 #include <stdlib.h>
 
-#define MAX_COMMAND_LENGTH 1024
-#define SET_COMMAND 1
-#define HINT_COMMAND 2
-#define VALIDATE_COMMAND 3
-#define RESTART_COMMAND 4
-#define EXIT_COMMAND 5
-
-int get_number_from_string(char *input_string);
-int isDigit(char c);
+void print_seperator(int size, int cell_size);
 
 /*
- * param max number of fixed cells.
- * 0<=ret<max_cells when successful
- * ret =-1 if the function failed
- *
- * function read the input from the user if it's a valid number, returns it. If invalid number asks the user again.
- * If it's another input exits with an eror
+ * Creates a sudoku_board struct, and returns it.
+ * If function fails due to memory allocation failure returns NULL.
  */
-int read_num_fixed_cells(int max_cells){
-	int fixed_cells=0, check=0;
-	while(1){
-		printf("Please enter the number of cells to fill [0-%d]:\n",max_cells-1);
-		fflush(stdout);
-		check=scanf("%d",&fixed_cells);
-		if(check<0){ /* string contains EOF, command is exit */
-			fixed_cells=-1;
-			break;
-		}
-		if(fixed_cells>=0 && fixed_cells<max_cells) break;
-		printf("Error: invalid number of cells to fill (should be between 0 and %d)\n",max_cells-1);
-		fflush(stdout);
-	}
-	return fixed_cells;
-}
+Board* create_sudoku_board(int game_size, int game_cell_size){
+	Board* game_board;
+	int i=0;
 
-
-/*
- * Assuming that result =/= NULL and contains space for 4 integers
- * ret[0] describes the command from user.
- * 1.set  2.hint  3.validate  4.restart  5.exit
- * in case of EOF uses exit command
- * when finished !=0 only commands 4.restart 5.exit are accepted
- * ret[1]-ret[3] are used for command parameters when needed
- */
-int* get_command(int *result, int finished){
-	int num_from_string=-1, i=0;
-	char *input_string = malloc(MAX_COMMAND_LENGTH), *check = NULL, *token = NULL, *delimiter=" \t\r\n";
-	if(input_string==NULL){
+	game_board=(Board*) malloc(sizeof(Board));
+	if(!game_board){ /* allocation failed */
 		printf("Error: malloc has failed\n");
+		return NULL;
+	}
+	game_board->memory=calloc(game_size*game_size,sizeof(int));
+	game_board->table=calloc(game_size,sizeof(int*));
+	if(!game_board->table || !game_board->memory){ /* allocation failed */
+		printf("Error: calloc has failed\n");
+		return NULL;
+	}
+	game_board->size=game_size;
+	game_board->cell_size=game_cell_size;
+	for(i=0;i<game_size;i++){
+		game_board->table[i] = game_board->memory+i*game_size;
+	}
+	return game_board;
+}
+
+/*param an initialized Sudoku game
+ * function changes all values to zero.
+ */
+void set_sudoku_zero(Board* game){
+	int i=0, j=0;
+	for(;i<(game->size);i++){
+		for(j=0;j<(game->size);j++){
+			game->table[i][j]=0;
+		}
+	}
+	return;
+}
+
+/*
+ * copies the values of game into copy. Assumes they are of the same size
+ */
+void copy(Board* game, Board* copy){
+	int i=0, j=0;
+	for(;i<(game->size);i++){
+		for(j=0;j<(game->size);j++){
+			copy->table[i][j]=game->table[i][j];
+		}
+	}
+	return;
+}
+
+/*
+ * if param !NULL then free all allocated memory and destroy the object
+ */
+void destroy_sudoku(Board* game){
+	if(!game) return;
+	free(game->memory);
+	free(game->table);
+	free(game);
+	return;
+}
+
+/*
+ * prints the Sudoku board
+ * "-" and "|" break the board into cells.
+ * Numbers with a dot (.) near them indicate fixed numbers.
+ */
+void print_sudoku(Board* game){
+	int i=0, j=0;
+	for(;i<(game->size);i++){
+		if(i%(game->cell_size)==0){
+			print_seperator(game->size,game->cell_size);
+		}
+		for(j=0;j<(game->size);j++){
+			if(j%(game->cell_size)==0){
+				printf("| ");
+			}
+			if(game->table[i][j]==0){ /* empty location */
+				printf("   ");
+			}
+			else if(game->table[i][j]>0){ /* non fixed value */
+				printf(" %d ",game->table[i][j]);
+			}
+			else{ /* fixed value */
+				printf(".%d ",(-1)*(game->table[i][j]));
+			}
+		}
+		printf("|\n");
+	}
+	print_seperator(game->size,game->cell_size);
+}
+
+/*
+ * prints (length) number of "-" chars.
+ * assumes length >=0
+ */
+void print_seperator(int size, int cell_size){
+	/*each value takes three spaces, each wall takes two except for the last one.
+	 * number of walls is (size/cell_size) without counting the last one. and +1 for last wall.*/
+	int i=(size*3)+2*(size/cell_size)+1;
+	for(;i>0;i--) printf("-");
+	printf("\n");
+}
+
+/* commands */
+
+/*
+ * params: Sudoku game, x-column number
+ * 1<x<(game->cell_size)*(game->cell_size),
+ * y-column number 1<x<(game->cell_size)*(game->cell_size),
+ * value z, 0<z<(game->cell_size)*(game->cell_size)
+ * function puts z to cell (y,x) if the cell is not set.
+ * checks if z is a valid possibility for loc (y,x), ie. no repeat on the same row, column or cell.
+ * if is valid, puts z to cell (y,x)
+ * ret=3 cell had a non zero value and was set to zero
+ * ret=2 if successfully inserted z to (y,x) and number of blank spaces did not change
+ * ret=1 if successfully inserted z to (y,x) previous value was zero
+ * ret=0 otherwise
+ */
+int set(Board* game, int x, int y, int z){
+	int current_val;
+	x--, y--; /* implementation starts locs at 0 */
+	current_val=game->table[y][x];
+	if(!game) return -1;
+	if(game->table[y][x]<0){
+		printf("Error: cell is fixed\n");
 		fflush(stdout);
-		*result=EXIT_COMMAND;
-		return result;
+		return 0;
 	}
-
-	while(1){
-		check = fgets(input_string,MAX_COMMAND_LENGTH,stdin);
-		if(check==NULL){ /* string contains EOF, command is exit */
-			*result=EXIT_COMMAND;
-			free(input_string);
-			return result;
-		}
-		token=strtok(input_string,delimiter);
-		if (token == NULL){ /*input is only white spaces, get new input*/
-			continue;
-		}
-		if(finished==0 && strcmp(token,"set")==0){ /* case command is set */
-			*result=SET_COMMAND;
-			for(i=1;i<=3;i++){  	/* get the cell and value */
-				token = strtok(NULL, delimiter);
-				num_from_string=get_number_from_string(token);
-				if(num_from_string==-1){  /* invalid command */
-					printf("Error: invalid command\n");
-					fflush(stdout);
-					break;
-				}
-				result[i]=num_from_string;
-			}
-			if(num_from_string==-1) continue; /* invalid command - get next one */
-			break;
-		}
-		if(finished==0 && strcmp(token,"hint")==0){ /* case command is hint */
-			*result=HINT_COMMAND;
-			for(i=1;i<=2;i++){ /* get the cell */
-				token = strtok(NULL, delimiter);
-				num_from_string=get_number_from_string(token);
-				if(num_from_string==-1){ /* invalid command */
-					printf("Error: invalid command\n");
-					fflush(stdout);
-					break;
-				}
-				result[i]=num_from_string;
-			}
-			if(num_from_string==-1) continue; /* invalid command - get next one */
-			break;
-		}
-		if(finished==0 && strcmp(token,"validate")==0){  /* case command is validate */
-			*result=VALIDATE_COMMAND;
-			break;
-		}
-		if(strcmp(token,"restart")==0){  /* case command is restart */
-			*result=RESTART_COMMAND;
-			break;
-		}
-		if(strcmp(token,"exit")==0){  /* case command is exit */
-			*result=EXIT_COMMAND;
-			break;
-		}
-		else{
-			printf("Error: invalid command\n");
-			fflush(stdout);
-		}
+	else if(z==0 || validate_value(game, z, y, x)){
+		game->table[y][x]=z;
+		if((z>0 && current_val>0) || (z==0 && current_val==0)) return 2; /* number of blank spaces doesn't change */
+		if(z==0 && current_val>0) return 3;
+		return 1;
 	}
-	free(input_string);
-	return result;
-}
-
-/*
- * gets an input string.
- * if string is empty or contains anything but numbers, return -1: Eror
- * returns the string parsed to an int number
- */
-int get_number_from_string(char *input_string){
-	long unsigned size=0;
-	int i=0, result=0, decimal=1;
-	if(input_string==NULL) return -1;
-	size= strlen(input_string);
-	if(size==0) return -1;
-	for(i=size-1;i>=0;i--){
-		if(!isDigit((*(input_string+i)))) return -1;
-		result+=(((int)(*input_string+i)-'0'))*(decimal);
-		decimal*=10;
+	else{
+		printf("Error: value is invalid\n");
+		fflush(stdout);
+		return 0;
 	}
-	return result;
-}
-
-/*
- * input is a char.
- * returns 1 if char c contains an integer. 0 otherwise
- */
-
-int isDigit(char c){
-	if(((int)c >= (int)'0')&&((int)c <= (int)'9')) return 1;
 	return 0;
+}
+
+/*
+ * params: a board and location (x,y) where x is number of column and y number of row
+ * assumes 1<=x,y,<=(game->cell_size)*(game->cell_size)
+ * returns a suggested value: the value at that location in the saved solution
+ */
+int hint(Board* game, int x, int y){
+	x--, y--; /* implementation starts locs at 0 */
+	if(!game) return -1;
+	printf("Hint: set cell to %d\n",MAX(game->table[y][x],(-1)*(game->table[y][x])));
+	fflush(stdout);
+	return 1;
+}
+
+/*
+ * params: game board and a solution board. Assumes that of the same size
+ * ret=0 if on the the boards is not initialized
+ * ret=1 otherwise
+ *
+ * function takes the board that has been created with user input and attempts to solve it
+ * prints if the board is solvable
+ */
+int validate(Board* game, Board* solution){
+	int check=0;
+	Board *temp_board;
+	if(!game || !solution) return -1;
+	temp_board=create_sudoku_board(game->size,game->cell_size);
+	copy(game,temp_board);
+	check=brute_solver(temp_board);
+	if(check==0){
+		printf("Validation failed: board is unsolvable\n");
+	}
+	else {
+		copy(temp_board,solution);
+		printf("Validation passed: board is solvable\n");
+	}
+	destroy_sudoku(temp_board);
+	return 1;
+}
+
+/*
+ * params: Sudoku game, location marked by (i,j) pair. and value
+ * returns if it's legal to enter value into the location (i,j).
+ * ie. no occurrences of value in the same row, column or cell.
+ * 0<i,j<game->size
+ * 1<value<MAX_VALUE
+ * ret=0 if value is not legal.
+ * ret=1 if value is legal.
+ */
+int validate_value(Board* game,int value,int i,int j){
+	int k=0, s=0, t=0, cell_size=game->cell_size;
+	int cell_loc[2];
+	cell_loc[0]=cell_size*(i/(cell_size));
+	cell_loc[1]=cell_size*(j/(cell_size));
+	/* checking same row */
+	for(k=0;k<(game->size);k++){
+		if(k!=j && MAX(game->table[i][k],(-1)*(game->table[i][k]))==value) return 0;
+	}
+	/* checking same column */
+	for(k=0;k<(game->size);k++){
+		if(k!=i && MAX(game->table[k][j],(-1)*(game->table[k][j]))==value) return 0;
+	}
+	/* checking same cell */
+	for(s=cell_loc[0];s<cell_size+cell_loc[0];s++){
+		for(t=cell_loc[1];t<cell_size+cell_loc[1];t++){
+			if(s==i && t==j) continue;
+			if(MAX(game->table[s][t],(-1)*(game->table[s][t]))==value) return 0;
+		}
+	}
+	return 1; /*value is legal*/
 }
 
