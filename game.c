@@ -1,225 +1,144 @@
 
 
-#include "game.h"
+
+#include "mainAux.h"
 #include "solver.h"
+#include "game.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 
-void print_seperator(int size, int cell_size);
+
+int brute_solver_rec(Board* game, int i, int j);
+int validate_value(Board* game,int value,int i,int j);
+int get_random_num(int *values, int num_valid);
+int rand_solver_rec(Board* game, int** avilability_table, int i, int j);
 
 /*
- * Creates a sudoku_board struct, and returns it.
- * If function fails due to memory allocation failure returns NULL.
+ * ret: 1, such that for every location (i,j) the value is legal. When 1<value<MAX_VALUE, if possible.
+ * ret: 0, when no legal solution is possible with current set values.
  */
-Board* create_sudoku_board(int game_size, int game_cell_size){
-	Board* game_board;
-	int i=0;
-
-	game_board=(Board*) malloc(sizeof(Board));
-	if(!game_board){ /* allocation failed */
-		printf("Error: malloc has failed\n");
-		return NULL;
-	}
-	game_board->memory=calloc(game_size*game_size,sizeof(int));
-	game_board->table=calloc(game_size,sizeof(int*));
-	if(!game_board->table || !game_board->memory){ /* allocation failed */
-		printf("Error: calloc has failed\n");
-		return NULL;
-	}
-	game_board->size=game_size;
-	game_board->cell_size=game_cell_size;
-	for(i=0;i<game_size;i++){
-		game_board->table[i] = game_board->memory+i*game_size;
-	}
-	return game_board;
-}
-
-/*param an initialized Sudoku game
- * function changes all values to zero.
- */
-void set_sudoku_zero(Board* game){
-	int i=0, j=0;
-	for(;i<(game->size);i++){
-		for(j=0;j<(game->size);j++){
-			game->table[i][j]=0;
-		}
-	}
-	return;
+int brute_solver(Board* game){
+	set_values(game);
+	return brute_solver_rec(game,0,0);
 }
 
 /*
- * copies the values of game into copy. Assumes they are of the same size
+ * parameters: game is the Sudoku game, (i,j) indicate position on the Sudoku board
+ * 0<i,j<game->size
+ * function recursively traverses the board. leaves fixed values untouched (marked with a minus).
+ * function sweeps the board from left to right and from bottom down
+ * Each time the function gets to a non fixed position (i,j), it will run sequentially on numbers 1-MAX_VALUE till it finds a valid input
+ * once one valid input is found will proceed to the next cell.
+ * When all possible inputs are invalid in current state will backtrack to previous location.
+ * At previous location will continue sequentially attempts over possible values.
+ *
+ * ret: 1, such that for every location (i,j) the value is legal. When 1<value<MAX_VALUE, if possible.
+ * ret: 0, when no legal solution is possible with current set values.
  */
-void copy(Board* game, Board* copy){
-	int i=0, j=0;
-	for(;i<(game->size);i++){
-		for(j=0;j<(game->size);j++){
-			copy->table[i][j]=game->table[i][j];
-		}
-	}
-	return;
-}
-
-/*
- * if param !NULL then free all allocated memory and destroy the object
- */
-void destroy_sudoku(Board* game){
-	if(!game) return;
-	free(game->memory);
-	free(game->table);
-	free(game);
-	return;
-}
-
-/*
- * prints the Sudoku board
- * "-" and "|" break the board into cells.
- * Numbers with a dot (.) near them indicate fixed numbers.
- */
-void print_sudoku(Board* game){
-	int i=0, j=0;
-	for(;i<(game->size);i++){
-		if(i%(game->cell_size)==0){
-			print_seperator(game->size,game->cell_size);
-		}
-		for(j=0;j<(game->size);j++){
-			if(j%(game->cell_size)==0){
-				printf("| ");
-			}
-			if(game->table[i][j]==0){ /* empty location */
-				printf("   ");
-			}
-			else if(game->table[i][j]>0){ /* non fixed value */
-				printf(" %d ",game->table[i][j]);
-			}
-			else{ /* fixed value */
-				printf(".%d ",(-1)*(game->table[i][j]));
-			}
-		}
-		printf("|\n");
-	}
-	print_seperator(game->size,game->cell_size);
-}
-
-/*
- * prints (length) number of "-" chars.
- * assumes length >=0
- */
-void print_seperator(int size, int cell_size){
-	/*each value takes three spaces, each wall takes two except for the last one.
-	 * number of walls is (size/cell_size) without counting the last one. and +1 for last wall.*/
-	int i=(size*3)+2*(size/cell_size)+1;
-	for(;i>0;i--) printf("-");
-	printf("\n");
-}
-
-/* commands */
-
-/*
- * params: Sudoku game, x-column number
- * 1<x<(game->cell_size)*(game->cell_size),
- * y-column number 1<x<(game->cell_size)*(game->cell_size),
- * value z, 0<z<(game->cell_size)*(game->cell_size)
- * function puts z to cell (y,x) if the cell is not set.
- * checks if z is a valid possibility for loc (y,x), ie. no repeat on the same row, column or cell.
- * if is valid, puts z to cell (y,x)
- * ret=3 cell had a non zero value and was set to zero
- * ret=2 if successfully inserted z to (y,x) and number of blank spaces did not change
- * ret=1 if successfully inserted z to (y,x) previous value was zero
- * ret=0 otherwise
- */
-int set(Board* game, int x, int y, int z){
-	int current_val;
-	x--, y--; /* implementation starts locs at 0 */
-	current_val=game->table[y][x];
-	if(!game) return -1;
-	if(game->table[y][x]<0){
-		printf("Error: cell is fixed\n");
-		fflush(stdout);
-		return 0;
-	}
-	else if(z==0 || validate_value(game, z, y, x)){
-		game->table[y][x]=z;
-		if((z>0 && current_val>0) || (z==0 && current_val==0)) return 2; /* number of blank spaces doesn't change */
-		if(z==0 && current_val>0) return 3;
-		return 1;
+int brute_solver_rec(Board* game, int i, int j){
+	int value=1;
+	if(game->table[i][j]<0){ /* the value is set */;
+		if((i==game->size-1)&&(j==game->size-1)) return 1; /* success! */
+		return(brute_solver_rec(game,i+((j+1)/(game->size)),(j+1)%(game->size))); /* move to the next */
 	}
 	else{
-		printf("Error: value is invalid\n");
-		fflush(stdout);
+		for(value=1;value<=(MAX_VALUE);value++){
+			if(validate_value(game, value, i, j)){ /* check if value is legal */
+				game->table[i][j]=value;
+				/*printf("(i,j)=(%d,%d), value=%d",i,j,value);*/
+				if((i==game->size-1)&&(j==game->size-1)) return 1; /* success! */
+				if(brute_solver_rec(game,i+((j+1)/(game->size)),(j+1)%(game->size))) return 1; /* check next cell */
+			}
+		}
+	}
+	game->table[i][j]=0; /* no valid values, setting the cell to 0 before going back */
+	return 0;
+}
+
+int rand_solver(Board* game){
+	int i=0, result=0;
+	int* mem_aloc;
+	int** avilability_table;
+	mem_aloc=calloc(MAX_VALUE*(game->size)*(game->size),sizeof(int));
+	avilability_table=calloc((game->size)*(game->size),sizeof(int*));
+	if(!avilability_table || !mem_aloc){ /* allocation failed */
+		printf("Error: calloc has failed\n");
 		return 0;
 	}
+	for(i=0;i<(game->size)*(game->size);i++){
+		avilability_table[i] = mem_aloc+i*MAX_VALUE;
+	}
+	result = rand_solver_rec(game, avilability_table, 0, 0);
+	free(avilability_table);
+	free(mem_aloc);
+	return result;
+}
+
+int rand_solver_rec(Board* game, int** avilability_table, int i, int j){
+	int* values;
+	int k=0, num_valid=0, random_number;
+	values=avilability_table[i*(game->size)+j];
+
+	for(;k<MAX_VALUE;k++){
+		if(validate_value(game, k+1, i, j)){
+			values[k]=1;
+			num_valid++;
+		}
+		else values[k]=0;
+	}
+
+/*	print_sudoku(game);
+	fflush(stdout); */
+
+	while(num_valid>0){
+/*		printf("(i,j)=(%d,%d)",i+1,j+1);
+		printf("num_valid: %d  values: ",num_valid);
+		for(k=0;k<MAX_VALUE;k++){
+			if(values[k]==1){
+				printf("%d, ", k+1);}}
+		printf("\n");
+		fflush(stdout); */
+		random_number=get_random_num(values, num_valid);
+		num_valid--;
+		game->table[i][j]=random_number;
+		if((i==game->size-1)&&(j==game->size-1)) return 1; /* success! */
+		if(rand_solver_rec(game, avilability_table, i+((j+1)/(game->size)),(j+1)%(game->size))) return 1;
+	}
+	game->table[i][j]=0;
 	return 0;
 }
 
 /*
- * params: a board and location (x,y) where x is number of column and y number of row
- * assumes 1<=x,y,<=(game->cell_size)*(game->cell_size)
- * returns a suggested value: the value at that location in the saved solution
+ * negative integers on the board indicate values that are set, and cannot be changed.
+ * Fucntion sets all non zero values.
  */
-int hint(Board* game, int x, int y){
-	x--, y--; /* implementation starts locs at 0 */
-	if(!game) return -1;
-	printf("Hint: set cell to %d\n",MAX(game->table[y][x],(-1)*(game->table[y][x])));
-	fflush(stdout);
-	return 1;
-}
-
-/*
- * params: game board and a solution board. Assumes that of the same size
- * ret=0 if on the the boards is not initialized
- * ret=1 otherwise
- *
- * function takes the board that has been created with user input and attempts to solve it
- * prints if the board is solvable
- */
-int validate(Board* game, Board* solution){
-	int check=0;
-	Board *temp_board;
-	if(!game || !solution) return -1;
-	temp_board=create_sudoku_board(game->size,game->cell_size);
-	copy(game,temp_board);
-	check=brute_solver(temp_board);
-	if(check==0){
-		printf("Validation failed: board is unsolvable\n");
-	}
-	else {
-		copy(temp_board,solution);
-		printf("Validation passed: board is solvable\n");
-	}
-	destroy_sudoku(temp_board);
-	return 1;
-}
-
-/*
- * params: Sudoku game, location marked by (i,j) pair. and value
- * returns if it's legal to enter value into the location (i,j).
- * ie. no occurrences of value in the same row, column or cell.
- * 0<i,j<game->size
- * 1<value<MAX_VALUE
- * ret=0 if value is not legal.
- * ret=1 if value is legal.
- */
-int validate_value(Board* game,int value,int i,int j){
-	int k=0, s=0, t=0, cell_size=game->cell_size;
-	int cell_loc[2];
-	cell_loc[0]=cell_size*(i/(cell_size));
-	cell_loc[1]=cell_size*(j/(cell_size));
-	/* checking same row */
-	for(k=0;k<(game->size);k++){
-		if(k!=j && MAX(game->table[i][k],(-1)*(game->table[i][k]))==value) return 0;
-	}
-	/* checking same column */
-	for(k=0;k<(game->size);k++){
-		if(k!=i && MAX(game->table[k][j],(-1)*(game->table[k][j]))==value) return 0;
-	}
-	/* checking same cell */
-	for(s=cell_loc[0];s<cell_size+cell_loc[0];s++){
-		for(t=cell_loc[1];t<cell_size+cell_loc[1];t++){
-			if(s==i && t==j) continue;
-			if(MAX(game->table[s][t],(-1)*(game->table[s][t]))==value) return 0;
+void set_values(Board* game){
+	int i=0, j=0;
+	for(;i<(game->size);i++){
+		for(j=0;j<(game->size);j++){
+			game->table[i][j]=MIN(game->table[i][j], ((-1)*(game->table[i][j])));
 		}
 	}
-	return 1; /*value is legal*/
 }
+
+
+/*
+ * gets an array of possible values. a cell in the array with value 1 indicates that the index+1 of cell is valid.
+ * 0 indicate invalid.
+ * If there is only one valid num, the function returns it. otherwise it uses rand() to select the index of the random number from all valid ones
+ * returns one of the valid values.
+ */
+int get_random_num(int *values,int num_valid){
+	int i=0, random_index=0; /* case there is only one valid number set the "random index" to first*/
+	if(num_valid>1){ /* otherwise use random to choose index */
+		random_index=rand()%num_valid;
+	}
+	for(;random_index>=0;i++){
+		if(values[i]==1) random_index--;
+	}
+	values[i-1]=0; /*sets 0 for the num we're about to use */
+	return i;
+}
+
 
