@@ -25,9 +25,7 @@ int main(int argc, char *argv[]) {
 	if(game_board!=NULL || solution_board!=NULL){
 		while(1){
 			fixed_cells=read_num_fixed_cells(SIZE*SIZE);
-			fflush(stdout);
 			if(fixed_cells==-1) break;
-			fflush(stdout);
 			check=generate_puzzle(game_board, solution_board, fixed_cells);
 			if(check==-1) break;
 			check=gameloop(game_board, solution_board, fixed_cells);
