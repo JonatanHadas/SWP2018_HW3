@@ -65,8 +65,8 @@ void copy(Board* game, Board* copy){
  */
 void destroy_sudoku(Board* game){
 	if(!game) return;
-	free(game->table);
 	free(game->memory);
+	free(game->table);
 	free(game);
 	return;
 }
@@ -123,11 +123,15 @@ void print_seperator(int size, int cell_size){
  * function puts z to cell (y,x) if the cell is not set.
  * checks if z is a valid possibility for loc (y,x), ie. no repeat on the same row, column or cell.
  * if is valid, puts z to cell (y,x)
- * ret=1 if successfully inserted z to (y,x)
+ * ret=3 cell had a non zero value and was set to zero
+ * ret=2 if successfully inserted z to (y,x) and number of blank spaces did not change
+ * ret=1 if successfully inserted z to (y,x) previous value was zero
  * ret=0 otherwise
  */
 int set(Board* game, int x, int y, int z){
+	int current_val;
 	x--, y--; /* implementation starts locs at 0 */
+	current_val=game->table[y][x];
 	if(!game) return -1;
 	if(game->table[y][x]<0){
 		printf("Error: cell is fixed\n");
@@ -136,6 +140,8 @@ int set(Board* game, int x, int y, int z){
 	}
 	else if(z==0 || validate_value(game, z, y, x)){
 		game->table[y][x]=z;
+		if((z>0 && current_val>0) || (z==0 && current_val==0)) return 2; /* number of blank spaces doesn't change */
+		if(z==0 && current_val>0) return 3;
 		return 1;
 	}
 	else{
@@ -169,14 +175,19 @@ int hint(Board* game, int x, int y){
  */
 int validate(Board* game, Board* solution){
 	int check=0;
+	Board *temp_board;
 	if(!game || !solution) return -1;
-	copy(game,solution);
-	check=brute_solver(solution);
+	temp_board=create_sudoku_board(game->size,game->cell_size);
+	copy(game,temp_board);
+	check=brute_solver(temp_board);
 	if(check==0){
 		printf("Validation failed: board is unsolvable\n");
 	}
-	else printf("Validation passed: board is solvable\n");
-	fflush(stdout);
+	else {
+		copy(temp_board,solution);
+		printf("Validation passed: board is solvable\n");
+	}
+	destroy_sudoku(temp_board);
 	return 1;
 }
 
@@ -196,16 +207,16 @@ int validate_value(Board* game,int value,int i,int j){
 	cell_loc[1]=cell_size*(j/(cell_size));
 	/* checking same row */
 	for(k=0;k<(game->size);k++){
-		if(MAX(game->table[i][k],(-1)*(game->table[i][k]))==value) return 0;
+		if(k!=j && MAX(game->table[i][k],(-1)*(game->table[i][k]))==value) return 0;
 	}
 	/* checking same column */
 	for(k=0;k<(game->size);k++){
-		if(MAX(game->table[k][j],(-1)*(game->table[k][j]))==value) return 0;
+		if(k!=i && MAX(game->table[k][j],(-1)*(game->table[k][j]))==value) return 0;
 	}
 	/* checking same cell */
 	for(s=cell_loc[0];s<cell_size+cell_loc[0];s++){
 		for(t=cell_loc[1];t<cell_size+cell_loc[1];t++){
-			fflush(stdout);
+			if(s==i && t==j) continue;
 			if(MAX(game->table[s][t],(-1)*(game->table[s][t]))==value) return 0;
 		}
 	}

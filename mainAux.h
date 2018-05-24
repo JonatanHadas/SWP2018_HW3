@@ -1,9 +1,4 @@
-/*
- * mainAux.h
- *
- *  Created on: May 22, 2018
- *      Author: User1
- */
+
 
 #ifndef MAINAUX_H_
 #define MAINAUX_H_

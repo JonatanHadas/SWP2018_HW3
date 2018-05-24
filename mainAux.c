@@ -39,17 +39,18 @@ int generate_puzzle(Board *game_board, Board *solution_board,int fixed_cells){
 
 int gameloop(Board *game_board, Board *solution_board, int fixed_cells){
 	int num_unsolved, check=0, finished=0;
-	int user_input[4]={0,0,0,0};
+	static int user_input[4]={0,0,0,0};
 	num_unsolved=(game_board->size)*(game_board->size)-fixed_cells;
+	print_sudoku(game_board);
 	while(1){
-		print_sudoku(game_board);
-		fflush(stdout);
 		get_command(user_input, finished);
 		switch(user_input[0]){
 			case 1:{
 				check=set(game_board, user_input[1], user_input[2], user_input[3]);
-				if(check==1){ /* successfully set */
-					num_unsolved--;
+				if(check>0){ /* successfully set */
+					print_sudoku(game_board);
+					if(check==1) num_unsolved--;
+					if(check==3) num_unsolved++;
 				}
 				break;
 			}
@@ -69,7 +70,10 @@ int gameloop(Board *game_board, Board *solution_board, int fixed_cells){
 			}
 		}
 		if(check==-1) return 5; /* there was an error with board, exit */
-		if(num_unsolved<0)finished=1; /* game is solved successfully */
+		if(num_unsolved==0){
+			printf("Puzzle solved successfully\n");
+			finished=1; /* game is solved successfully */
+		}
 	}
 	return 0;
 }

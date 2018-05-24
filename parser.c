@@ -23,47 +23,37 @@ int isDigit(char c);
  * If it's another input exits with an eror
  */
 int read_num_fixed_cells(int max_cells){
-	int fixed_cells=0;
-	char *input_string = malloc(MAX_COMMAND_LENGTH);
-	if(input_string==NULL){
-		printf("Error: malloc has failed\n");
-		fflush(stdout);
-		return -1;
-	}
+	int fixed_cells=0, check=0;
 	while(1){
-		printf("Please enter the number of cells to fill [0-80]:\n");
+		printf("Please enter the number of cells to fill [0-%d]:\n",max_cells-1);
 		fflush(stdout);
-		input_string = fgets(input_string,MAX_COMMAND_LENGTH,stdin);
-		if(input_string==NULL){ /* string contains EOF, command is exit */
+		check=scanf("%d",&fixed_cells);
+		if(check<0){ /* string contains EOF, command is exit */
 			fixed_cells=-1;
 			break;
 		}
-		fixed_cells=atoi(input_string);
 		if(fixed_cells>=0 && fixed_cells<max_cells) break;
-		printf("Error: Invalid number of cells to fill (should be between 0 and 80)\n");
+		printf("Error: invalid number of cells to fill (should be between 0 and %d)\n",max_cells-1);
 		fflush(stdout);
 	}
-	free(input_string);
 	return fixed_cells;
 }
 
 
 /*
- *
  * Assuming that result =/= NULL and contains space for 4 integers
  * ret[0] describes the command from user.
  * 1.set  2.hint  3.validate  4.restart  5.exit
  * in case of EOF uses exit command
  * when finished !=0 only commands 4.restart 5.exit are accepted
  * ret[1]-ret[3] are used for command parameters when needed
- *
- *
  */
 int* get_command(int *result, int finished){
 	int num_from_string=-1, i=0;
 	char *input_string = malloc(MAX_COMMAND_LENGTH), *check = NULL, *token = NULL, *delimiter=" \t\r\n";
 	if(input_string==NULL){
 		printf("Error: malloc has failed\n");
+		fflush(stdout);
 		*result=EXIT_COMMAND;
 		return result;
 	}
@@ -72,6 +62,7 @@ int* get_command(int *result, int finished){
 		check = fgets(input_string,MAX_COMMAND_LENGTH,stdin);
 		if(check==NULL){ /* string contains EOF, command is exit */
 			*result=EXIT_COMMAND;
+			free(input_string);
 			return result;
 		}
 		token=strtok(input_string,delimiter);
@@ -94,13 +85,13 @@ int* get_command(int *result, int finished){
 			break;
 		}
 		if(finished==0 && strcmp(token,"hint")==0){ /* case command is hint */
-			printf("hint\n");
 			*result=HINT_COMMAND;
 			for(i=1;i<=2;i++){ /* get the cell */
 				token = strtok(NULL, delimiter);
 				num_from_string=get_number_from_string(token);
 				if(num_from_string==-1){ /* invalid command */
 					printf("Error: invalid command\n");
+					fflush(stdout);
 					break;
 				}
 				result[i]=num_from_string;
@@ -122,6 +113,7 @@ int* get_command(int *result, int finished){
 		}
 		else{
 			printf("Error: invalid command\n");
+			fflush(stdout);
 		}
 	}
 	free(input_string);
