@@ -1,5 +1,3 @@
-
-
 #include "game.h"
 #include "solver.h"
 #include <stdio.h>
@@ -7,10 +5,6 @@
 
 void print_seperator(int size, int cell_size);
 
-/*
- * Creates a sudoku_board struct, and returns it.
- * If function fails due to memory allocation failure returns NULL.
- */
 Board* create_sudoku_board(int game_size, int game_cell_size){
 	Board* game_board;
 	int i=0;
@@ -34,9 +28,6 @@ Board* create_sudoku_board(int game_size, int game_cell_size){
 	return game_board;
 }
 
-/*param an initialized Sudoku game
- * function changes all values to zero.
- */
 void set_sudoku_zero(Board* game){
 	int i=0, j=0;
 	for(;i<(game->size);i++){
@@ -47,9 +38,6 @@ void set_sudoku_zero(Board* game){
 	return;
 }
 
-/*
- * copies the values of game into copy. Assumes they are of the same size
- */
 void copy(Board* game, Board* copy){
 	int i=0, j=0;
 	for(;i<(game->size);i++){
@@ -60,9 +48,6 @@ void copy(Board* game, Board* copy){
 	return;
 }
 
-/*
- * if param !NULL then free all allocated memory and destroy the object
- */
 void destroy_sudoku(Board* game){
 	if(!game) return;
 	free(game->memory);
@@ -71,11 +56,6 @@ void destroy_sudoku(Board* game){
 	return;
 }
 
-/*
- * prints the Sudoku board
- * "-" and "|" break the board into cells.
- * Numbers with a dot (.) near them indicate fixed numbers.
- */
 void print_sudoku(Board* game){
 	int i=0, j=0;
 	for(;i<(game->size);i++){
@@ -115,19 +95,6 @@ void print_seperator(int size, int cell_size){
 
 /* commands */
 
-/*
- * params: Sudoku game, x-column number
- * 1<x<(game->cell_size)*(game->cell_size),
- * y-column number 1<x<(game->cell_size)*(game->cell_size),
- * value z, 0<z<(game->cell_size)*(game->cell_size)
- * function puts z to cell (y,x) if the cell is not set.
- * checks if z is a valid possibility for loc (y,x), ie. no repeat on the same row, column or cell.
- * if is valid, puts z to cell (y,x)
- * ret=3 cell had a non zero value and was set to zero
- * ret=2 if successfully inserted z to (y,x) and number of blank spaces did not change
- * ret=1 if successfully inserted z to (y,x) previous value was zero
- * ret=0 otherwise
- */
 int set(Board* game, int x, int y, int z){
 	int current_val;
 	x--, y--; /* implementation starts locs at 0 */
@@ -152,11 +119,6 @@ int set(Board* game, int x, int y, int z){
 	return 0;
 }
 
-/*
- * params: a board and location (x,y) where x is number of column and y number of row
- * assumes 1<=x,y,<=(game->cell_size)*(game->cell_size)
- * returns a suggested value: the value at that location in the saved solution
- */
 int hint(Board* game, int x, int y){
 	x--, y--; /* implementation starts locs at 0 */
 	if(!game) return -1;
@@ -165,14 +127,6 @@ int hint(Board* game, int x, int y){
 	return 1;
 }
 
-/*
- * params: game board and a solution board. Assumes that of the same size
- * ret=0 if on the the boards is not initialized
- * ret=1 otherwise
- *
- * function takes the board that has been created with user input and attempts to solve it
- * prints if the board is solvable
- */
 int validate(Board* game, Board* solution){
 	int check=0;
 	Board *temp_board;
@@ -191,15 +145,6 @@ int validate(Board* game, Board* solution){
 	return 1;
 }
 
-/*
- * params: Sudoku game, location marked by (i,j) pair. and value
- * returns if it's legal to enter value into the location (i,j).
- * ie. no occurrences of value in the same row, column or cell.
- * 0<i,j<game->size
- * 1<value<MAX_VALUE
- * ret=0 if value is not legal.
- * ret=1 if value is legal.
- */
 int validate_value(Board* game,int value,int i,int j){
 	int k=0, s=0, t=0, cell_size=game->cell_size;
 	int cell_loc[2];
@@ -222,4 +167,3 @@ int validate_value(Board* game,int value,int i,int j){
 	}
 	return 1; /*value is legal*/
 }
-
