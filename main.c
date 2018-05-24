@@ -1,6 +1,3 @@
-
-
-
 #include <stdio.h>
 #include <stdlib.h>
 #include "parser.h"
@@ -19,7 +16,6 @@ int main(int argc, char *argv[]) {
 	if(argc<2) return 0;
 	seed=atoi(argv[1]);
 	srand(seed);
-
 	game_board=create_sudoku_board(SIZE, CELL_SIZE);
 	solution_board=create_sudoku_board(SIZE, CELL_SIZE);
 	if(game_board!=NULL || solution_board!=NULL){
