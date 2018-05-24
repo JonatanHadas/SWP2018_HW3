@@ -38,27 +38,26 @@ int brute_solver(Board* game){
  */
 int brute_solver_rec(Board* game, int i, int j){
 	int value=1;
-	if(game->table[i][j]<0){
+	if(game->table[i][j]<0){ /* the value is set */;
 		if((i==game->size-1)&&(j==game->size-1)) return 1; /* success! */
-		return(brute_solver_rec(game,i+((j+1)/(game->size)),(j+1)%(game->size)));
+		return(brute_solver_rec(game,i+((j+1)/(game->size)),(j+1)%(game->size))); /* move to the next */
 	}
 	else{
 		for(value=1;value<=(MAX_VALUE);value++){
-			if(validate_value(game, value, i, j)){
+			if(validate_value(game, value, i, j)){ /* check if value is legal */
 				game->table[i][j]=value;
+				/*printf("(i,j)=(%d,%d), value=%d",i,j,value);*/
 				if((i==game->size-1)&&(j==game->size-1)) return 1; /* success! */
-				if(brute_solver_rec(game,i+((j+1)/(game->size)),(j+1)%(game->size))) return 1;
-			}
-			else if(value==MAX_VALUE){
-				game->table[i][j]=0;
+				if(brute_solver_rec(game,i+((j+1)/(game->size)),(j+1)%(game->size))) return 1; /* check next cell */
 			}
 		}
 	}
+	game->table[i][j]=0; /* no valid values, setting the cell to 0 before going back */
 	return 0;
 }
 
 int rand_solver(Board* game){
-	int i=0;
+	int i=0, result=0;
 	int* mem_aloc;
 	int** avilability_table;
 	mem_aloc=calloc(MAX_VALUE*(game->size)*(game->size),sizeof(int));
@@ -70,8 +69,10 @@ int rand_solver(Board* game){
 	for(i=0;i<(game->size)*(game->size);i++){
 		avilability_table[i] = mem_aloc+i*MAX_VALUE;
 	}
-	return rand_solver_rec(game, avilability_table, 0, 0);
-
+	result = rand_solver_rec(game, avilability_table, 0, 0);
+	free(avilability_table);
+	free(mem_aloc);
+	return result;
 }
 
 int rand_solver_rec(Board* game, int** avilability_table, int i, int j){
@@ -139,5 +140,3 @@ int get_random_num(int *values,int num_valid){
 	values[i-1]=0; /*sets 0 for the num we're about to use */
 	return i;
 }
-
-
