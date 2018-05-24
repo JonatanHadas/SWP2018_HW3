@@ -2,7 +2,7 @@ CC = gcc
 COMP_FLAG = -ansi -Wall -Wextra \
 -Werror -pedantic-errors
 OBJS = main.o game.o mainAux.o parser.o solver.o
-EXEC = HW3s
+EXEC = sudoku
 
 $(EXEC): $(OBJS)
 	$(CC) -o $(EXEC) $(OBJS)
