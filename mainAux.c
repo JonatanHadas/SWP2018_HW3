@@ -1,5 +1,3 @@
-
-
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -8,14 +6,7 @@
 #include "game.h"
 #include "parser.h"
 
-/*
- * parameters: Two boards and a number of cells to fix 0<=fixed_cells<=80
- * ret=-1 if the fucntion failed
- * ret=1 on success
- *
- * function creates a solution and enters it into solution_board. Then chooses randomly fixed_cells number
- * of different cells and copies their value into the game board. then sets them.
- */
+
 int generate_puzzle(Board *game_board, Board *solution_board,int fixed_cells){
 	int check=0, set_cells=0;
 	int random_loc[2];
@@ -36,6 +27,7 @@ int generate_puzzle(Board *game_board, Board *solution_board,int fixed_cells){
 	set_values(game_board);
 	return 1;
 }
+
 
 int gameloop(Board *game_board, Board *solution_board, int fixed_cells){
 	int num_unsolved, check=0, finished=0;
